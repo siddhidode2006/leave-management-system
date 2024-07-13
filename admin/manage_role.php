@@ -1,3 +1,7 @@
+<head>
+    <link rel="stylesheet" href="../assets-old/css/style.css">
+</head>
+
 <?php 
 include '../include/db-connection.php';
 include '../include/session.php';
@@ -9,44 +13,43 @@ checkLogin();
 if (!isAdmin()) {
     header('Location: ../login.php');
     exit();
-}
-
+};
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-  if (isset($_POST['add_leave_type']) && !empty($_POST['leave_type_name'])) {
-      // Insert new leave type
-      $leave_type_name = $conn->real_escape_string($_POST['leave_type_name']);
-      $leave_type_status = $conn->real_escape_string($_POST['leave_type_status']);
-      $sql = "INSERT INTO leave_types (type, status) VALUES ('$leave_type_name', '$leave_type_status')";
+  if (isset($_POST['add_role']) && !empty($_POST['role_name'])) {
+      // Insert new Role
+      $role_name = $conn->real_escape_string($_POST['role_name']);
+      $role_status = $conn->real_escape_string($_POST['role_status']);
+      $sql = "INSERT INTO `role` (name, status) VALUES ('$role_name', '$role_status')";
       if ($conn->query($sql) === TRUE) {
-          $_SESSION['message'] = 'New leave type created successfully';
+          $_SESSION['message'] = 'New role created successfully';
+      } else {
+          $_SESSION['error'] = 'Error:' . $conn->error;
+      }
+      // Redirect to avoid form resubmission
+      header("Location: ".$_SERVER['PHP_SELF']);
+      exit();
+  } elseif (isset($_POST['update_role']) && !empty($_POST['role_name']) && !empty($_POST['role_id'])) {
+      // Update existing role
+      $role_id = intval($_POST['role_id']);
+      $role_name = $conn->real_escape_string($_POST['role_name']);
+      $role_status = $conn->real_escape_string($_POST['role_status']);
+      $sql = "UPDATE `role` SET name='$role_name', status='$role_status' WHERE id=$role_id";
+      if ($conn->query($sql) === TRUE) {
+          $_SESSION['message'] = 'Role updated successfully';
       } else {
           $_SESSION['error'] = 'Error: ' . $conn->error;
       }
       // Redirect to avoid form resubmission
       header("Location: ".$_SERVER['PHP_SELF']);
       exit();
-    } elseif (isset($_POST['update_leave_type']) && !empty($_POST['leave_type_name']) && !empty($_POST['leave_type_id'])) {
-        // Update existing leave type
-        $leave_type_id = intval($_POST['leave_type_id']);
-        $leave_type_name = $conn->real_escape_string($_POST['leave_type_name']);
-        $leave_type_status = $conn->real_escape_string($_POST['leave_type_status']);
-        $sql = "UPDATE leave_types SET type='$leave_type_name', status='$leave_type_status' WHERE id=$leave_type_id";
-        if ($conn->query($sql) === TRUE) {
-            $_SESSION['message'] = 'Leave type updated successfully';
-        } else {
-            $_SESSION['error'] = 'Error: ' . $conn->error;
-        }
-        // Redirect to avoid form resubmission
-        header("Location: ".$_SERVER['PHP_SELF']);
-        exit();
-    } elseif (isset($_POST['delete_leave_type']) && !empty($_POST['leave_type_id'])) {
-      // Delete leave type
-      $leave_type_id = intval($_POST['leave_type_id']);
-      $sql = "DELETE FROM leave_types WHERE id=$leave_type_id";
+  } elseif (isset($_POST['delete_role']) && !empty($_POST['role_id'])) {
+      // Delete role
+      $role_id = intval($_POST['role_id']);
+      $sql = "DELETE FROM `role` WHERE id=$role_id";
       if ($conn->query($sql) === TRUE) {
-          $_SESSION['message'] = 'Leave type deleted successfully';
+          $_SESSION['message'] = 'Role deleted successfully';
       } else {
           $_SESSION['error'] = 'Error: ' . $conn->error;
       }
@@ -56,13 +59,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   }
 }
 
-// Fetch leave_types
-$sql = "SELECT * FROM leave_types";
+// Fetch Roles 
+$sql = "SELECT * FROM `role`";
 $result = $conn->query($sql);
-$leave_type_Array = [];
+$roleArray = [];
 if ($result->num_rows > 0) {
   while ($row = $result->fetch_assoc()) {
-      $leave_type_Array[] = $row;
+      $roleArray[] = $row;
   }
 }
 
@@ -78,7 +81,7 @@ include '../templates/admin-header.php';
 
 <main id="main" class="main">
     <div class="pagetitle">
-        <h1>Leave Type</h1>
+        <h1>Role Management</h1>
     </div><!-- End Page Title -->
 
     <section class="section">
@@ -115,10 +118,10 @@ include '../templates/admin-header.php';
                         <?php endif; ?>
 
                         <button type="button" class="btn btn-primary mt-3 mb-3" data-bs-toggle="modal" data-bs-target="#addModal">
-                            Add
+                            Add Role
                         </button>
                         <!-- Table with stripped rows -->
-                        <table id="leave_typesTable" class="table datatable table-bordered ">
+                        <table id="roleTable" class="table datatable">
                             <thead>
                                 <tr>
                                     <th>ID</th>
@@ -128,14 +131,14 @@ include '../templates/admin-header.php';
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($leave_type_Array as $leave_type): ?>
+                                <?php foreach ($roleArray as $role): ?>
                                 <tr>
-                                    <td><?php echo $leave_type["id"]; ?></td>
-                                    <td><?php echo $leave_type["type"]; ?></td>
-                                    <td><?php echo $leave_type["status"]; ?></td>
+                                    <td><?php echo $role["id"]; ?></td>
+                                    <td><?php echo $role["name"]; ?></td>
+                                    <td><?php echo $role["status"]; ?></td>
                                     <td>
-                                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#updateModal" onclick="setUpdateData(<?php echo htmlspecialchars(json_encode($leave_type)); ?>)">Update</button>
-                                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" onclick="setDeleteData(<?php echo $leave_type['id']; ?>)">Delete</button>
+                                        <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#updateModal" onclick="setUpdateData(<?php echo $role['id']; ?>, '<?php echo $role['name']; ?>')">Update</button>
+                                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" onclick="setDeleteData(<?php echo $role['id']; ?>)">Delete</button>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>
@@ -149,56 +152,23 @@ include '../templates/admin-header.php';
     </section>
 </main><!-- End #main -->
 
-<!-- Add Leave Type Modal -->
+<!-- Add Role Modal -->
 <div class="modal fade" id="addModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <form action="" method="POST">
-            <div class="modal-header">
-                <h5 class="modal-title">Add Leave Type</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label for="addLeaveTypeName" class="form-label">Leave Type Name</label>
-                    <input type="text" class="form-control" id="addLeaveTypeName" name="leave_type_name" required>
-                </div>
-                <div class="mb-3">
-                    <label for="addleave_typestatus" class="form-label">Status</label>
-                    <select class="form-select" id="addleave_typestatus" name="leave_type_status">
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
-                    </select>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="submit" name="add_leave_type" class="btn btn-primary">Add</button>
-            </div>
-        </form>
-
-        </div>
-    </div>
-</div>
-
-<!-- Update Leave Type Modal -->
-<div class="modal fade" id="updateModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form action="" method="POST">
                 <div class="modal-header">
-                    <h5 class="modal-title">Update Leave Type</h5>
+                    <h5 class="modal-title">Add Role</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="hidden" id="updateLeaveTypeId" name="leave_type_id">
                     <div class="mb-3">
-                        <label for="updateLeaveTypeName" class="form-label">Leave Type Name</label>
-                        <input type="text" class="form-control" id="updateLeaveTypeName" name="leave_type_name" required>
+                        <label for="addRoleName" class="form-label">Role Name</label>
+                        <input type="text" class="form-control" id="addRoleName" name="role_name" required>
                     </div>
                     <div class="mb-3">
-                        <label for="updateLeaveTypeStatus" class="form-label">Status</label>
-                        <select class="form-select" id="updateLeaveTypeStatus" name="leave_type_status">
+                        <label for="addRoleStatus" class="form-label">Status</label>
+                        <select class="form-select" id="addRoleStatus" name="role_status">
                             <option value="Active">Active</option>
                             <option value="Inactive">Inactive</option>
                         </select>
@@ -206,30 +176,61 @@ include '../templates/admin-header.php';
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" name="update_leave_type" class="btn btn-Success">Update</button>
+                    <button type="submit" name="add_role" class="btn btn-primary">Add</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
+<!-- Update Role Modal -->
+<div class="modal fade" id="updateModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form action="" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title">Update Role</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="updateRoleId" name="role_id">
+                    <div class="mb-3">
+                        <label for="updateRoleName" class="form-label">Role Name</label>
+                        <input type="text" class="form-control" id="updateRoleName" name="role_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="updateRoleStatus" class="form-label">Status</label>
+                        <select class="form-select" id="updateRoleStatus" name="role_status">
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" name="update_role" class="btn btn-warning">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
-<!-- Delete Leave Type Modal -->
+<!-- Delete Role Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form action="" method="POST">
                 <div class="modal-header">
-                    <h5 class="modal-title">Delete Leave Type</h5>
+                    <h5 class="modal-title">Delete Role</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="hidden" id="deleteLeaveTypeId" name="leave_type_id">
-                    <p>Are you sure you want to delete this Leave Type?</p>
+                    <input type="hidden" id="deleteRoleId" name="role_id">
+                    <p>Are you sure you want to delete this Role?</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" name="delete_leave_type" class="btn btn-danger">Delete</button>
+                    <button type="submit" name="delete_role" class="btn btn-danger">Delete</button>
                 </div>
             </form>
         </div>
@@ -238,27 +239,28 @@ include '../templates/admin-header.php';
 
 <script>
     $(document).ready(function() {
-        $('#leave_typesTable').DataTable({
-            "scrollX": false, // Enable horizontal scrolling if necessary
+        $('#roleTable').DataTable({
+            "scrollX": false, // Enable horizontal scrolling
             "columns": [
-                null, // ID column
-                null, // Name column
-                null, // Status column
-                { "orderable": false } // Action column
+                { "width": "25%" }, // Adjust width as needed for each column
+                { "width": "25%" },
+                { "width": "25%" },
+                { "width": "25%", "orderable": false } // Disable sorting for action column
             ]
         });
     });
 
-    function setUpdateData(leave_type) {
-        document.getElementById('updateLeaveTypeId').value = leave_type.id;
-        document.getElementById('updateLeaveTypeName').value = leave_type.type;
-        document.getElementById('updateLeaveTypeStatus').value = leave_type.status;
+    function setUpdateData(id, name, status) {
+        document.getElementById('updateRoleId').value = id;
+        document.getElementById('updateRoleName').value = name;
+        document.getElementById('updateRoleStatus').value = status;
     }
 
     function setDeleteData(id) {
-        document.getElementById('deleteLeaveTypeId').value = id;
+        document.getElementById('deleteRoleId').value = id;
     }
 
     
 </script>
-<?php include '../templates/footer.php';?>
+
+<?php include '../templates/footer.php'; ?>

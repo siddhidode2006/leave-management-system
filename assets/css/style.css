@@ -391,7 +391,7 @@ h6 {
   font-size: 32px;
   padding-left: 10px;
   cursor: pointer;
-  color: #012970;
+  color: #f9f9f9;
 }
 
 .header .search-bar {
@@ -406,8 +406,8 @@ h6 {
     left: 0;
     right: 0;
     padding: 20px;
-    box-shadow: 0px 0px 15px 0px rgba(1, 41, 112, 0.1);
-    background: white;
+    box-shadow: 0px 0px 15px 0px rgba(0, 10, 26, 0.1);
+    background: rgb(253, 252, 252);
     z-index: 9999;
     transition: 0.3s;
     visibility: hidden;
@@ -474,7 +474,7 @@ h6 {
 }
 
 .header-nav .nav-profile {
-  color: #012970;
+  color: #fefeff;
 }
 
 .header-nav .nav-profile img {
@@ -684,7 +684,7 @@ h6 {
   align-items: center;
   font-size: 15px;
   font-weight: 600;
-  color: #4154f1;
+  color: #000106;
   transition: 0.3;
   background: #f6f9ff;
   padding: 10px 15px;
@@ -694,7 +694,7 @@ h6 {
 .sidebar-nav .nav-link i {
   font-size: 16px;
   margin-right: 10px;
-  color: #4154f1;
+  color: #000108;
 }
 
 .sidebar-nav .nav-link.collapsed {

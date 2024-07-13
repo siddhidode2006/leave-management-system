@@ -3,3 +3,40 @@
     background-color:#EF0107;
 }
 
+.sidebar
+{
+    background-color: rgb(240, 5, 150);
+}
+
+.card
+{
+    background-color: #FFFF00;
+}
+
+.pagetitle
+{
+    font-style: italic;
+}
+
+.table
+{
+    border-color: black;
+}
+
+.alert
+{
+    background-color: rgb(176, 39, 138);
+    font-style: italic;
+}
+
+.dropdown-header
+{
+    font-style: italic;
+}
+
+.col-12
+{
+    font-style: italic;
+}
+
+
